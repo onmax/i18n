@@ -1,6 +1,6 @@
 import MagicString from 'magic-string'
 import { createUnplugin } from 'unplugin'
-import { VIRTUAL_PREFIX_HEX, asI18nVirtual } from './utils'
+import { NUXT_I18N_VIRTUAL_PREFIX, VIRTUAL_PREFIX_HEX, asI18nVirtual, escapeRE } from './utils'
 import { dirname, resolve } from 'pathe'
 import { findStaticImports } from 'mlly'
 import { resolvePath, tryUseNuxt } from '@nuxt/kit'
@@ -34,27 +34,33 @@ export const ResourcePlugin = (options: BundlerPluginOptions, ctx: ResolvedI18nC
       enforce: 'pre',
 
       // resolve virtual hash to file path
-      resolveId(id) {
-        if (!id || id.startsWith(VIRTUAL_PREFIX_HEX)) {
-          return
-        }
+      resolveId: {
+        // the bundler skips the call for every other import
+        filter: {
+          id: new RegExp(`^(?:${escapeRE(NUXT_I18N_VIRTUAL_PREFIX)}/|(?:${[...i18nPathSet].map(escapeRE).join('|')})$)`),
+        },
+        handler(id) {
+          if (!id || id.startsWith(VIRTUAL_PREFIX_HEX)) {
+            return
+          }
 
-        // claim i18n file paths so `unplugin-vue-i18n` cannot resolve these to virtual modules
-        // loaded from disk, which would skip our transforms (#4049) - it only does so under vite,
-        // and webpack reads a path resolving to itself as `Recursion in resolving`
-        if (meta.framework === 'vite' && i18nPathSet.has(id)) {
-          return id
-        }
+          // claim i18n file paths so `unplugin-vue-i18n` cannot resolve these to virtual modules
+          // loaded from disk, which would skip our transforms (#4049) - it only does so under vite,
+          // and webpack reads a path resolving to itself as `Recursion in resolving`
+          if (meta.framework === 'vite' && i18nPathSet.has(id)) {
+            return id
+          }
 
-        const path = i18nFileHashSet.get(id)
-        const environment = (this as typeof this & { environment?: { config: { consumer: string } } }).environment
-        if (meta.framework === 'vite' && environment?.config.consumer === 'server' && path && ctx.rawResourcePaths.has(path)) {
-          return
-        }
+          const path = i18nFileHashSet.get(id)
+          const environment = (this as typeof this & { environment?: { config: { consumer: string } } }).environment
+          if (meta.framework === 'vite' && environment?.config.consumer === 'server' && path && ctx.rawResourcePaths.has(path)) {
+            return
+          }
 
-        if (path) {
-          return path
-        }
+          if (path) {
+            return path
+          }
+        },
       },
 
       transformInclude(id) {

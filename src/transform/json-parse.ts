@@ -1,6 +1,6 @@
 import { createUnplugin } from 'unplugin'
 import { readStaticResource } from '../resources'
-import { asI18nVirtual } from './utils'
+import { NUXT_I18N_VIRTUAL_PREFIX, asI18nVirtual, escapeRE } from './utils'
 
 import type { ResolvedI18nContext } from '../context'
 
@@ -23,20 +23,24 @@ export const JsonParseMessagesPlugin = (ctx: ResolvedI18nContext) =>
     return {
       name: 'nuxtjs:i18n-json-parse-messages',
       enforce: 'pre',
-      resolveId(id) {
-        if (virtualToPath.has(id)) { return JSON_PARSE_VIRTUAL_PREFIX + id }
+      // filters let the bundler skip the call for every other import
+      resolveId: {
+        filter: { id: new RegExp(`^${escapeRE(NUXT_I18N_VIRTUAL_PREFIX)}/`) },
+        handler(id) {
+          if (virtualToPath.has(id)) { return JSON_PARSE_VIRTUAL_PREFIX + id }
+        },
       },
-      loadInclude(id) {
-        return id.startsWith(JSON_PARSE_VIRTUAL_PREFIX)
-      },
-      load(id) {
-        const path = virtualToPath.get(id.slice(JSON_PARSE_VIRTUAL_PREFIX.length))!
-        this.addWatchFile(path)
-        const raw = readStaticResource(ctx, path)
-        return {
-          code: `export default /* @__PURE__ */ JSON.parse(${JSON.stringify(raw)})`,
-          map: { version: 3, sources: [], names: [], mappings: '' },
-        }
+      load: {
+        filter: { id: new RegExp(`^${escapeRE(JSON_PARSE_VIRTUAL_PREFIX)}`) },
+        handler(id) {
+          const path = virtualToPath.get(id.slice(JSON_PARSE_VIRTUAL_PREFIX.length))!
+          this.addWatchFile(path)
+          const raw = readStaticResource(ctx, path)
+          return {
+            code: `export default /* @__PURE__ */ JSON.parse(${JSON.stringify(raw)})`,
+            map: { version: 3, sources: [], names: [], mappings: '' },
+          }
+        },
       },
     }
   })

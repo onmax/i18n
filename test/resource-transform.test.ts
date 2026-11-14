@@ -26,8 +26,19 @@ describe('ResourcePlugin', () => {
     const plugin = createPlugin([path], [path])
     const id = asI18nVirtual(path)
 
-    expect(plugin.resolveId.call({ environment: { config: { consumer: 'server' } } }, id)).toBeUndefined()
-    expect(plugin.resolveId.call({ environment: { config: { consumer: 'client' } } }, id)).toBe(path)
+    expect(plugin.resolveId.handler.call({ environment: { config: { consumer: 'server' } } }, id)).toBeUndefined()
+    expect(plugin.resolveId.handler.call({ environment: { config: { consumer: 'client' } } }, id)).toBe(path)
+  })
+
+  it('filters resolveId to the ids it handles', () => {
+    const path = '/app/i18n/locales/en.json'
+    const filter: RegExp = createPlugin([path]).resolveId.filter.id
+
+    expect(filter.test(asI18nVirtual('abc'))).toBe(true)
+    expect(filter.test(path)).toBe(true)
+    expect(filter.test(`${path}?raw`)).toBe(false)
+    expect(filter.test('vue')).toBe(false)
+    expect(filter.test('/app/i18n/locales/en.jsonx')).toBe(false)
   })
 
   it('unwraps `defineI18nLocale` calls', async () => {
