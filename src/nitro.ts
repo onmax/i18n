@@ -17,6 +17,7 @@ import { readStaticResource } from './resources'
 import { join, relative } from 'pathe'
 import { logger, toArray } from './utils'
 import { EXECUTABLE_EXTENSIONS } from './constants'
+import { escapeRE } from './transform/utils'
 
 import type { Nuxt } from '@nuxt/schema'
 import type { FileMeta } from './types'
@@ -102,10 +103,13 @@ export async function setupNitro(ctx: ResolvedI18nContext, nuxt: Nuxt) {
       name: 'nuxt-i18n:server-composables',
       enforce: 'pre',
       applyToEnvironment: environment => environment.name === 'nitro',
-      resolveId(id) {
-        if (id === '#i18n' || id === appComposables) {
-          return this.resolve(serverComposables)
-        }
+      resolveId: {
+        filter: { id: new RegExp(`^(?:#i18n|${escapeRE(appComposables)})$`) },
+        handler(id) {
+          if (id === '#i18n' || id === appComposables) {
+            return this.resolve(serverComposables)
+          }
+        },
       },
     })
   }
