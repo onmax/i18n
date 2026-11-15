@@ -104,7 +104,6 @@ export function getDefineConfig(
   const common = {
     __IS_SSR__: String(nuxt.options.ssr),
     __IS_SSG__: String(ctx.staticDeploy),
-    __PARALLEL_PLUGIN__: String(options.parallelPlugin),
     __DYNAMIC_PARAMS_KEY__: JSON.stringify(DYNAMIC_PARAMS_KEY),
     __DEFAULT_COOKIE_KEY__: JSON.stringify(DEFAULT_COOKIE_KEY),
     __NUXT_I18N_VERSION__: JSON.stringify(version),

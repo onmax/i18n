@@ -122,7 +122,7 @@ export default defineNuxtModule<NuxtI18nOptions>({
       ...ctx.i18nLayers.map(l => relative(nuxt.options.buildDir, l.i18nDir + '/**/*')),
     )
 
-    addPlugin(ctx.resolver.resolve('./runtime/plugins/i18n'))
+    addPlugin(ctx.resolver.resolve(ctx.options.parallelPlugin ? './runtime/plugins/i18n-parallel' : './runtime/plugins/i18n'))
     if (nuxt.options.dev || nuxt.options._prepare) {
       addPlugin(ctx.resolver.resolve('./runtime/plugins/dev'))
     }

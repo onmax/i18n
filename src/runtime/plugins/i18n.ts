@@ -20,7 +20,6 @@ import type { I18nHeadOptions } from '#internal-i18n-types'
 
 export default defineNuxtPlugin({
   name: 'i18n:plugin',
-  parallel: __PARALLEL_PLUGIN__,
   async setup(_nuxt) {
     Object.defineProperty(_nuxt.versions, 'nuxtI18n', { get: () => __NUXT_I18N_VERSION__ })
 

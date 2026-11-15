@@ -4,7 +4,7 @@ import { addRouteMiddleware, defineNuxtPlugin, defineNuxtRouteMiddleware, naviga
 
 export default defineNuxtPlugin({
   name: 'i18n:plugin:route-locale-detect',
-  dependsOn: !__I18N_PRELOAD__ ? ['i18n:plugin'] : ['i18n:plugin', 'i18n:plugin:preload'],
+  dependsOn: ['i18n:plugin', 'i18n:plugin:preload'],
   async setup(_nuxt) {
     // @ts-expect-error untyped internal id parameter
     const nuxt = useNuxtApp(_nuxt._id)
